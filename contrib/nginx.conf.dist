@@ -1,0 +1,12 @@
+lua_package_path '<path/to/repo>/?.lua;;';
+
+server {
+	listen 80;
+	server_name <servername>;
+
+	location / {
+		root <path/to/www-data>;
+		index index.html;
+		content_by_lua_file <path/to>/cmangos.lua;
+	}
+}
