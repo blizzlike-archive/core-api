@@ -69,6 +69,9 @@ for _, route in pairs(routes) do
   if match and ngx.var.request_method == route.method then
     ngx.req.read_body()
     route.func(ngx.var.request_body or nil)
+  elseif ngx.var.request_method == 'OPTIONS' then
+    -- browser cors implementation sucks
+    response(ngx.HTTP_OK)
   end
   response(ngx.HTTP_NOT_FOUND, nil)
 end
