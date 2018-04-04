@@ -25,38 +25,64 @@ local response = function(status, content)
 end
 
 local post_account = function(body)
+  local validation = {
+    username = true,
+    email = true,
+    password = true
+  }
+
   if body then
     data = cjson.decode(body)
+  else
+    validation = {
+      username = false,
+      email = false,
+      password = false
+    }
   end
 
-  if type(data) == 'table' and
-      data.username and data.email and data.password then
+  if not data.username then validation.username = false end
+  if not data.email then validation.email = false end
+  if not data.password then validation.password = false end
+
+  if validation.username and
+      validation.email and
+      validation.password then
     cursor = db:execute(
-        "SELECT username, email FROM account WHERE username = '" ..
-        db:escape(data.username) ..
-	"' OR email = '" ..
-	db:escape(data.email) .. "';"
+      "SELECT username, email FROM account WHERE \
+        username = '" ..  db:escape(data.username) .. "' OR \
+        email = '" .. db:escape(data.email) .. "';"
       )
     local numrows = cursor:numrows()
-    cursor:close()
 
-    if numrows == 0 then
-      password = "SHA1(CONCAT(UPPER('" .. db:escape(data.username) .. "'), ':', UPPER('" .. db:escape(data.password) .. "')))"
-      cursor, err = db:execute(
-        "INSERT INTO account " ..
-        "(username, sha_pass_hash, gmlevel, v, s, email, joindate, last_ip) " ..
-	"VALUES ('" .. db:escape(data.username) .. "', " .. password .. ", 0, 0, 0, '" ..
-        db:escape(data.email).. "', '" .. os.date("%Y-%m-%d %H:%M:%I", os.time()) .. "', '" ..
-        ngx.var.remote_addr .. "');"
+    if numrows ~= 0 then
+      while cursor:fetch(result, 'a') do
+        if result.username == data.username then validation.username = false end
+        if result.email == data.email then validation.email = false end
+      end
+    else
+      insert = db:execute(
+        "INSERT INTO account \
+          (username, sha_pass_hash, gmlevel, v, s, email, joindate, last_ip) \
+          VALUES (
+            '" .. db:escape(data.username) .. "', \
+            SHA1(CONCAT( \
+              UPPER('" .. db:escape(data.username) .. "'), ':', \
+              UPPER('" .. db:escape(data.password) .. "') \
+            )), 0, 0, 0, \
+            '" .. db:escape(data.email).. "', \
+            '" .. os.date("%Y-%m-%d %H:%M:%I", os.time()) .. "', \
+            '" .. db:escape(ngx.var.remote_addr) .. "');"
       )
-
-      if cursor == 1 then
-        response(ngx.HTTP_CREATED, nil)
+      if insert == 1 then
+        response(ngx.HTTP_CREATED, validation)
+      else
+        response(ngx.HTTP_INTERNAL_SERVER_ERROR, nil)
       end
     end
+    cursor:close()
+    response(ngx.HTTP_BAD_REQUEST, validation)
   end
-
-  response(ngx.HTTP_BAD_REQUEST, nil)
 end
 
 local routes = {
@@ -71,7 +97,7 @@ for _, route in pairs(routes) do
     route.func(ngx.var.request_body or nil)
   elseif ngx.var.request_method == 'OPTIONS' then
     -- browser cors implementation sucks
-    response(ngx.HTTP_OK)
+    response(ngx.HTTP_OK, nil)
   end
-  response(ngx.HTTP_NOT_FOUND, nil)
 end
+response(ngx.HTTP_NOT_FOUND, nil)
