@@ -42,7 +42,7 @@ local post_account = function(body)
   end
 
   if not data.username then validation.username = false end
-  if not data.email then validation.email = false end
+  if not data.email or not data.email:match('^[%w.]+@%w+%.%w+$') then validation.email = false end
   if not data.password then validation.password = false end
 
   if validation.username and
