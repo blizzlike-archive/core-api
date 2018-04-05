@@ -50,29 +50,29 @@ local post_account = function(body)
       validation.email and
       validation.password then
     cursor = db:execute(
-      "SELECT username, email FROM account WHERE \
-        username = '" ..  db:escape(data.username) .. "' OR \
-        email = '" .. db:escape(data.email) .. "';"
+      "SELECT LOWER(username) AS username, LOWER(email) AS email FROM account WHERE \
+        username = '" ..  db:escape(data.username:lower()) .. "' OR \
+        email = '" .. db:escape(data.email:lower()) .. "';"
       )
     local numrows = cursor:numrows()
 
     if numrows ~= 0 then
       local result = {}
       while cursor:fetch(result, 'a') do
-        if result.username == data.username then validation.username = false end
-        if result.email == data.email then validation.email = false end
+        if result.username == data.username:lower() then validation.username = false end
+        if result.email == data.email:lower() then validation.email = false end
       end
     else
       insert = db:execute(
         "INSERT INTO account \
           (username, sha_pass_hash, gmlevel, v, s, email, joindate, last_ip) \
           VALUES ( \
-            '" .. db:escape(data.username) .. "', \
+            '" .. db:escape(data.username:lower()) .. "', \
             SHA1(CONCAT( \
               UPPER('" .. db:escape(data.username) .. "'), ':', \
               UPPER('" .. db:escape(data.password) .. "') \
             )), 0, 0, 0, \
-            '" .. db:escape(data.email).. "', \
+            '" .. db:escape(data.email:lower()).. "', \
             '" .. os.date("%Y-%m-%d %H:%M:%I", os.time()) .. "', \
             '" .. db:escape(ngx.var.remote_addr) .. "');"
       )
