@@ -25,6 +25,7 @@ local response = function(status, content)
 end
 
 local post_account = function(body)
+  local data = {}
   local validation = {
     username = true,
     email = true,
@@ -56,6 +57,7 @@ local post_account = function(body)
     local numrows = cursor:numrows()
 
     if numrows ~= 0 then
+      local result = {}
       while cursor:fetch(result, 'a') do
         if result.username == data.username then validation.username = false end
         if result.email == data.email then validation.email = false end
@@ -64,7 +66,7 @@ local post_account = function(body)
       insert = db:execute(
         "INSERT INTO account \
           (username, sha_pass_hash, gmlevel, v, s, email, joindate, last_ip) \
-          VALUES (
+          VALUES ( \
             '" .. db:escape(data.username) .. "', \
             SHA1(CONCAT( \
               UPPER('" .. db:escape(data.username) .. "'), ':', \
@@ -81,8 +83,8 @@ local post_account = function(body)
       end
     end
     cursor:close()
-    response(ngx.HTTP_BAD_REQUEST, validation)
   end
+  response(ngx.HTTP_BAD_REQUEST, validation)
 end
 
 local routes = {
