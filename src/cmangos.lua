@@ -12,6 +12,13 @@ local db = mysql:connect(
   config.db.host,
   config.db.port)
 
+local blacklist = {
+  'root',
+  'administrator',
+  'gamemaster',
+  'moderator'
+}
+
 local response = function(status, content)
   ngx.header['Content-Type'] = 'application/json'
   ngx.status = status
@@ -40,6 +47,12 @@ local post_account = function(body)
       email = false,
       password = false
     }
+  end
+
+  for _, v in ipairs(blacklist) do
+    if v == data.username:lower() then
+      validation.username = false
+    end
   end
 
   if not data.username then validation.username = false end
