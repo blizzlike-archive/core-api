@@ -31,6 +31,16 @@ local response = function(status, content)
   ngx.exit(ngx.OK)
 end
 
+local get_realms = function(body)
+  local cursor = db:execute("SELECT * FROM realmlist")
+  local result = {}
+  local realms = {}
+  while cursor:fetch(result, 'a') do
+    table.insert(realms, result)
+  end
+  response(ngx.HTTP_OK, realms)
+end
+
 local post_account = function(body)
   local data = {}
   local validation = {
@@ -101,6 +111,7 @@ local post_account = function(body)
 end
 
 local routes = {
+  { uri = '/v1/realm', method = 'GET', func = get_realms },
   { uri = '/v1/account', method = 'POST', func = post_account }
 }
 
