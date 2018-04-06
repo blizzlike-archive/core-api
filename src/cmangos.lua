@@ -35,8 +35,31 @@ local get_realms = function(body)
   local cursor = db:execute("SELECT * FROM realmlist")
   local result = {}
   local realms = {}
+
+  local get_mode = function(mode)
+    local m = tonumber(mode)
+    if m == 0 then return 'PvE' end
+    if m == 1 then return 'PvP' end
+    if m == 4 then return 'Normal' end
+    if m == 6 then return 'RP' end
+    if m == 8 then return 'RP PvP' end
+    return 'unknown'
+  end
+
+  local get_population = function(population)
+    local p = tonumber(population)
+    if p <= 0.5 then return 'low' end
+    if p > 0.5 and p <= 1.0 then return 'medium' end
+    if p > 1.0 and p <= 2.0 then return 'high' end
+    return 'full'
+  end
+
   while cursor:fetch(result, 'a') do
-    table.insert(realms, result)
+    table.insert(realms, {
+      name = result.name,
+      mode = get_mode(result.icon),
+      population = get_population(result.population)
+    })
   end
   response(ngx.HTTP_OK, realms)
 end
