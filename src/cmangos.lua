@@ -54,11 +54,22 @@ local get_realms = function(body)
     return 'full'
   end
 
+  local get_state = function(state)
+    local s = tonumber(state)
+    if s == 1 then return 'invalid' end
+    if s == 2 then return 'offline' end
+    if s == 4 then return 'show' end
+    if s == 32 then return 'new player' end
+    if s == 64 then return 'recommended' end
+    return 'unknown'
+  end
+
   while cursor:fetch(result, 'a') do
     table.insert(realms, {
       name = result.name,
       mode = get_mode(result.icon),
-      population = get_population(result.population)
+      population = get_population(result.population),
+      state = get_state(result.realmflags)
     })
   end
   response(ngx.HTTP_OK, realms)
