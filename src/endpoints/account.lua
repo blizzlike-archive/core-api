@@ -34,7 +34,7 @@ function account.create(self)
     for _, v in ipairs(blacklist) do
       if v == data.username:lower() then validation.username = false end
     end
-    if #data.username > 32 or acc:username_exists(data.username) then
+    if #data.username > 16 or acc:username_exists(data.username) then
       validation.username = false
     end
   else
@@ -45,12 +45,13 @@ function account.create(self)
       acc:email_exists(data.email) then
     validation.email = false
   end
-  if not data.password then validation.password = false end
+  if not data.password or #data.password > 16 then validation.password = false end
 
   if validation.username and
       validation.email and
       validation.password then
     if acc:create(data.username, data.email, data.password, ngx.var.remote_addr) then
+      -- local acc:send_email_verification(data.email)
       return ngx.HTTP_CREATED, validation
     else
       local err = 'error while creating account'
