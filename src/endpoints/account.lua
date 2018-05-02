@@ -50,8 +50,9 @@ function account.create(self)
   if validation.username and
       validation.email and
       validation.password then
-    if acc:create(data.username, data.email, data.password, ngx.var.remote_addr) then
-      -- local acc:send_email_verification(data.email)
+    local accid = acc:create(data.username, data.email, data.password, ngx.var.remote_addr)
+    if accid then
+      -- acc:send_email_verification(accid, data.email)
       return ngx.HTTP_CREATED, validation
     else
       local err = 'error while creating account'

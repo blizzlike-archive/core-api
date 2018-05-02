@@ -26,12 +26,10 @@ local function _randomString(length)
     return randomString(length - 1) .. charset[math.random(1, #charset)]
 end
 
-function account.create(self, username, email, password, ip, lock)
-  local locked = 0
-  if lock then locked = 1 end
+function account.create(self, username, email, password, ip)
   local cursor = db:execute(
     "INSERT INTO account \
-      (username, sha_pass_hash, email, joindate, locked, last_ip) \
+      (username, sha_pass_hash, email, joindate, last_ip) \
       VALUES ( \
         'UPPER(" .. db:escape(username) .. ")', \
         SHA1(CONCAT( \
@@ -39,11 +37,11 @@ function account.create(self, username, email, password, ip, lock)
           UPPER('" .. db:escape(password) .. "') \
         )), \
         'LOWER(" .. db:escape(email) .. ")', \
-        NOW(), " .. locked .. " \
+        NOW(), \
         '" .. db:escape(ip) .. "'
       );")
-  if cursor == 1 then return true end
-  return false
+  if cursor == 1 then return db:getlastautoid() end
+  return nil
 end
 
 function account.email_exists(self, email)
@@ -76,7 +74,7 @@ function account.send_email_verification(self, id, email)
   local token = _randomString(16)
   local cursor = db:execute(
     "UPDATE account SET email_check = \
-    '" .. token .. "' WHERE id = '" .. id .. "'")
+    '" .. token .. "' WHERE id = '" .. db:escape(id) .. "'")
   if cursor == 1 then
     local mail = {
       headers = {
