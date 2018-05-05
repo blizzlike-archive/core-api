@@ -1,4 +1,5 @@
 local config = {}
+local cfg = {}
 
 function config.load(self)
   local file = '/etc/luna/core.lua'
@@ -6,9 +7,9 @@ function config.load(self)
 
   if fd then
     fd:close()
-    self.config = dofile(file)
+    cfg = dofile(file)
   else
-    self.config = {
+    cfg = {
       db = {
         realmd = {
           name = '',
@@ -24,4 +25,4 @@ end
 
 config:load()
 
-return config
+return cfg

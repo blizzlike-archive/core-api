@@ -18,7 +18,7 @@ function account.create(self)
   }
 
   ngx.req.read_body()
-  local body = ngx.req.get_post_args()
+  local body = ngx.var.request_body
   if not body then
     local err = 'empty/truncated body'
     ngx.log(ngx.STDERR, 'account: ' .. err)
@@ -63,7 +63,7 @@ function account.create(self)
   return ngx.HTTP_BAD_REQUEST, validation
 end 
 
-travis.routes = {
+account.routes = {
   { context = '', method = 'POST', call = account.create }
 }
 
