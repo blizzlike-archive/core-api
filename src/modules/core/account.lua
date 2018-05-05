@@ -38,7 +38,7 @@ function account.create(self, username, email, password, ip)
         )), \
         'LOWER(" .. db:escape(email) .. ")', \
         NOW(), \
-        '" .. db:escape(ip) .. "'
+        '" .. db:escape(ip) .. "' \
       );")
   if cursor == 1 then return db:getlastautoid() end
   return nil
