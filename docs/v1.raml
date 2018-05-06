@@ -78,6 +78,35 @@ mediaType: application/json
 
   /auth:
     displayName: Authentication
+    get:
+      description: authenticate a user through cookie
+      headers:
+        Set-Cookie:
+          displayName: Cookie
+          description: Transer session information
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: |
+                {
+                  "reason": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+        403:
+          body:
+            application/json:
+              type: |
+                {
+                  "reason": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
     post:
       description: authenticate a user
       body:

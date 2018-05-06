@@ -33,6 +33,16 @@ function account.auth(self)
   }
 end
 
+function account.auth_cookie(self)
+  local session = lh:get_session()
+  if session then
+    local err = 'session expired?'
+    ngx.log(ngx.STDERR, 'account: ' .. err)
+    return ngx.HTTP_FORBIDDEN, { reason = err }
+  end
+  return ngx.HTTP_OK, { reason = 'welcome back' }
+end
+
 function account.create(self)
   local validation = {
     username = true,
@@ -85,7 +95,9 @@ function account.create(self)
 end 
 
 account.routes = {
-  { context = '/auth', method = 'POST', call = account.auth }
+  { context = '/auth', method = 'GET', call = account.auth_cookie },
+
+  { context = '/auth', method = 'POST', call = account.auth },
   { context = '', method = 'POST', call = account.create }
 }
 
