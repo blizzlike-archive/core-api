@@ -1,5 +1,6 @@
 local cjson = require('cjson')
-local acc = require('core.account')
+local core_acc = require('core.account')
+local lh = require('luna.helper')
 
 local blacklist = {
   'ROOT',
@@ -10,6 +11,28 @@ local blacklist = {
 
 local account = {}
 
+function account.auth(self)
+  local body, err = lh:get_body()
+  if not body then
+    ngx.log(ngx.STDERR, 'account: ' .. err)
+    return ngx.HTTP_BAD_REQUEST, { reason = err }
+  end
+
+  local data = cjson.decode(body) or {}
+  if data.username and data.password then
+    local id, err = core_acc:auth(data.username, data.password)
+    if id then
+      lh:create_session(id)
+      return ngx.HTTP_OK, { id = id }
+    end
+    return ngx.HTTP_FORBIDDEN, { reason = err }
+  end
+  return ngx.HTTP_BAD_REQUEST, {
+    username = data.username ~= nil,
+    password = data.password ~= nil
+  }
+end
+
 function account.create(self)
   local validation = {
     username = true,
@@ -17,10 +40,8 @@ function account.create(self)
     password = true
   }
 
-  ngx.req.read_body()
-  local body = ngx.var.request_body
+  local body, err = lh:get_body()
   if not body then
-    local err = 'empty/truncated body'
     ngx.log(ngx.STDERR, 'account: ' .. err)
     return ngx.HTTP_BAD_REQUEST, {
       username = false,
@@ -34,7 +55,7 @@ function account.create(self)
     for _, v in ipairs(blacklist) do
       if v == data.username:lower() then validation.username = false end
     end
-    if #data.username > 16 or acc:username_exists(data.username) then
+    if #data.username > 16 or core_acc:username_exists(data.username) then
       validation.username = false
     end
   else
@@ -42,7 +63,7 @@ function account.create(self)
   end
 
   if not data.email or not data.email:match('^[%w.]+@%w+%.%w+$') or
-      acc:email_exists(data.email) then
+      core_acc:email_exists(data.email) then
     validation.email = false
   end
   if not data.password or #data.password > 16 then validation.password = false end
@@ -50,9 +71,9 @@ function account.create(self)
   if validation.username and
       validation.email and
       validation.password then
-    local accid = acc:create(data.username, data.email, data.password, ngx.var.remote_addr)
+    local accid = core_acc:create(data.username, data.email, data.password, ngx.var.remote_addr)
     if accid then
-      -- acc:send_email_verification(accid, data.email)
+      -- core_acc:send_email_verification(accid, data.email)
       return ngx.HTTP_CREATED, validation
     else
       local err = 'error while creating account'
@@ -64,6 +85,7 @@ function account.create(self)
 end 
 
 account.routes = {
+  { context = '/auth', method = 'POST', call = account.auth }
   { context = '', method = 'POST', call = account.create }
 }
 

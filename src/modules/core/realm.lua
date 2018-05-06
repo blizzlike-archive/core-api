@@ -19,7 +19,10 @@ function realm.list(self)
   if cursor:numrows() ~= 0 then
     local row = cursor:fetch({}, 'a')
     local list = {}
-    while row do table.insert(list, row) end
+    while row do
+      table.insert(list, row)
+      row = cur:fetch(row, 'a')
+    end
     cursor:close()
     return list
   end

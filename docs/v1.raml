@@ -76,6 +76,65 @@ mediaType: application/json
                 }
               }
 
+  /auth:
+    displayName: Authentication
+    post:
+      description: authenticate a user
+      body:
+        application/json:
+          type: |
+            {
+              "username": {
+                "type": "string",
+                "required": true
+              },
+              "password": {
+                "type": "string",
+                "required": true
+              }
+            }
+      responses:
+        200:
+          headers:
+            Set-Cookie:
+              displayName: Cookie
+              description: Provide unique account id and authentication token
+              type: string
+              required: true
+          body:
+            application/json:
+              type: |
+                {
+                  "id": {
+                    "type": "number",
+                    "required": true
+                  }
+                }
+        400:
+          body:
+            application/json:
+              type: |
+                {
+                  "username": {
+                    "type": "boolean",
+                    "required": true
+                  },
+                  "password": {
+                    "type": "boolean",
+                    "required": true
+                  }
+                }
+        403:
+          body:
+            application/json:
+              type: |
+                {
+                  "reason": {
+                    "type": "string",
+                    "required": true
+                  }
+                }
+
 /realm:
   displayName: Realm
   get:
