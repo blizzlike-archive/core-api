@@ -21,7 +21,7 @@ function realm.list(self)
     local list = {}
     while row do
       table.insert(list, row)
-      row = cur:fetch(row, 'a')
+      row = cursor:fetch(row, 'a')
     end
     cursor:close()
     return list
