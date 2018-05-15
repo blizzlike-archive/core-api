@@ -11,7 +11,7 @@ function helper.create_session(self, id)
 end
 
 function helper.get_body(self)
-  ngx.read_body()
+  ngx.req.read_body()
   local body = ngx.var.request_body
   if not body then
     return nil, 'empty/truncated body'
