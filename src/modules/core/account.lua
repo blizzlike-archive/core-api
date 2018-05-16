@@ -2,17 +2,20 @@ local config = require('core.config')
 local luasql = require('luasql.mysql')
 local salt = require('salt')
 
-local mysql = luasql.mysql()
-local db = mysql:connect(
-  config.db.realmd.name,
-  config.db.realmd.user,
-  config.db.realmd.pass,
-  config.db.realmd.host,
-  config.db.realmd.port)
+local _connect = function()
+  local mysql = luasql.mysql()
+  return mysql:connect(
+    config.db.realmd.name,
+    config.db.realmd.user,
+    config.db.realmd.pass,
+    config.db.realmd.host,
+    config.db.realmd.port)
+end
 
 local account = {}
 
 function account.auth(self, username, password)
+  local db = _connect()
   local cursor = db:execute(
     "SELECT id FROM account WHERE \
       username = '" .. db:escape(username) .. "' AND \
@@ -24,12 +27,16 @@ function account.auth(self, username, password)
   if cursor:numrows() ~= 0 then
     local row = cursor:fetch({}, 'a')
     cursor:close()
+    db:close()
     return row.id
   end
+  db:close()
   return nil, 'cannot authenticate'
 end
 
 function account.create(self, username, email, password, ip)
+  local db = _connect()
+  local autoid = nil
   local cursor = db:execute(
     "INSERT INTO account \
       (username, sha_pass_hash, email, email_check, joindate, last_ip) \
@@ -44,11 +51,13 @@ function account.create(self, username, email, password, ip)
         NOW(), \
         '" .. db:escape(ip) .. "' \
       );")
-  if cursor == 1 then return db:getlastautoid() end
-  return nil
+  if cursor == 1 then autoid = db:getlastautoid() end
+  db:close()
+  return autoid
 end
 
 function account.email_exists(self, email)
+  local db = _connect()
   local cursor = db:execute(
     "SELECT LOWER(email) AS email \
       FROM account WHERE \
@@ -56,12 +65,15 @@ function account.email_exists(self, email)
 
   if cursor:numrows() ~= 0 then
     cursor:close()
+    db:close()
     return true
   end
+  db:close()
   return false
 end
 
 function account.passwd(self, id, password)
+  local db = _connect()
   local cursor = db:execute(
     "UPDATE account SET sha_pass_hash = \
       SHA1(CONCAT( \
@@ -70,12 +82,15 @@ function account.passwd(self, id, password)
       )), \
       WHERE id = " .. id .. ";")
   if cursor == 1 then
+    db:close()
     return true
   end
+  db:close()
   return nil, 'cannot update password'
 end
 
 function account.username_exists(self, username)
+  local db = _connect()
   local cursor = db:execute(
     "SELECT id, LOWER(username) AS username \
       FROM account WHERE \
@@ -84,8 +99,10 @@ function account.username_exists(self, username)
   if cursor:numrows() ~= 0 then
     local row = cursor:fetch({}, 'a')
     cursor:close()
+    db:close()
     return row.id
   end
+  db:close()
   return false, 'user does not exist'
 end
 

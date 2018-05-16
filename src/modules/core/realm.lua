@@ -1,19 +1,23 @@
 local config = require('core.config')
 local luasql = require('luasql.mysql')
 
-local mysql = luasql.mysql()
-local db = mysql:connect(
-  config.db.realmd.name,
-  config.db.realmd.user,
-  config.db.realmd.pass,
-  config.db.realmd.host,
-  config.db.realmd.port)
+local _connect = function()
+  local mysql = luasql.mysql()
+  return mysql:connect(
+    config.db.realmd.name,
+    config.db.realmd.user,
+    config.db.realmd.pass,
+    config.db.realmd.host,
+    config.db.realmd.port)
+end
 
 local realm = {}
 
 function realm.list(self)
+  local db = _connect()
   local cursor = db:execute("SELECT * FROM realmlist")
   if not cursor then
+    db:close()
     return nil, 'database error'
   end
   if cursor:numrows() ~= 0 then
@@ -24,8 +28,10 @@ function realm.list(self)
       row = cursor:fetch(row, 'a')
     end
     cursor:close()
+    db:close()
     return list
   end
+  db:close()
   return {}, 'no realms available'
 end
 
