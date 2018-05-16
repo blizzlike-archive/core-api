@@ -1,0 +1,33 @@
+language: generic
+sudo: required
+
+services:
+  - docker
+
+before_script:
+  - chmod -R o+w .
+  - env | grep TRAVIS > /tmp/travis.env || true
+  - env | grep GITHUB >> /tmp/travis.env || true
+  - env | grep DISTRONAME >> /tmp/travis.env
+
+  - |
+    docker pull blizzlike/buildenv:${DISTRONAME}
+    docker run \
+      --name buildenv-${DISTRONAME} -d \
+      -v $(pwd):/home/blizzlike/development \
+      --env-file /tmp/travis.env \
+      blizzlike/buildenv:${DISTRONAME} tail -f /dev/null
+
+stages:
+  - generate
+
+jobs:
+  include:
+    # build binary packages
+    - stage: generate
+      env:
+        - DISTRONAME=stretch
+      script:
+        - |
+          docker exec -t buildenv-${DISTRONAME} \
+            lua5.1 ./travis/core-api.lua
