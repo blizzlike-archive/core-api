@@ -1,13 +1,12 @@
-local salt = require('salt')
 local helper = {}
 
-local expire = 86400
+local timeout = 86400
 
-function helper.create_session(self, id)
-  local accoundid = 'account_id=' .. id .. '; Path=/; Expires=' .. ngx.cookie_time(ngx.time() + expire)
-  local sessionid = 'token=' .. salt:gen(64) .. '; Path=/; Expires=' .. ngx.cookie_time(ngx.time() + expire)
+function helper.set_cookie(self, token)
+  local expiry = ngx.time() + timeout
+  local cookie = 'token=' .. token .. '; Path=/; Expires=' .. ngx.cookie_time(expiry)
 
-  ngx.header['Set-Cookie'] = { accountid, sessionid }
+  ngx.header['Set-Cookie'] = { cookie }
 end
 
 function helper.get_body(self)

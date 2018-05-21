@@ -20,9 +20,9 @@ function account.auth(self)
 
   local data = cjson.decode(body) or {}
   if data.username and data.password then
-    local id, err = core_acc:auth(data.username, data.password)
-    if id then
-      lh:create_session(id)
+    local auth, err = core_acc:auth(data.username, data.password, ngx.var.remote_addr)
+    if auth then
+      lh:set_cookie(auth.token)
       return ngx.HTTP_OK, { id = id }
     end
     return ngx.HTTP_FORBIDDEN, { reason = err }

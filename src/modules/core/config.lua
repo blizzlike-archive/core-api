@@ -11,6 +11,13 @@ function config.load(self)
   else
     cfg = {
       db = {
+        api = {
+          name = '',
+          user = '',
+          pass = '',
+          host = '',
+          port = 3306,
+        },
         realmd = {
           name = '',
           user = '',
@@ -18,6 +25,9 @@ function config.load(self)
           host = '',
           port = 3306,
         }
+      },
+      session = {
+        expiry = 86400
       }
     }
   end

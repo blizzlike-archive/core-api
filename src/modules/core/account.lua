@@ -1,4 +1,5 @@
 local config = require('core.config')
+local session = require('core.session')
 local luasql = require('luasql.mysql')
 local salt = require('salt')
 
@@ -14,21 +15,24 @@ end
 
 local account = {}
 
-function account.auth(self, username, password)
+function account.auth(self, username, password, ip)
   local db = _connect()
   local cursor = db:execute(
     "SELECT id FROM account WHERE \
-      username = '" .. db:escape(username) .. "' AND \
-      password = \
+      UPPER(username) = '" .. db:escape(username:upper()) .. "' AND \
+      sha_pass_hash = \
         SHA1(CONCAT( \
           UPPER(`username`), ':', \
           UPPER('" .. db:escape(password) .. "') \
         ));")
-  if cursor:numrows() ~= 0 then
+  if cursor and cursor:numrows() ~= 0 then
     local row = cursor:fetch({}, 'a')
     cursor:close()
-    db:close()
-    return row.id
+    local s = session:create(row.id, ip)
+    if s then
+      db:close()
+      return s
+    end
   end
   db:close()
   return nil, 'cannot authenticate'
@@ -41,12 +45,12 @@ function account.create(self, username, email, password, ip)
     "INSERT INTO account \
       (username, sha_pass_hash, email, email_check, joindate, last_ip) \
       VALUES ( \
-        'UPPER(" .. db:escape(username) .. ")', \
+        '" .. db:escape(username:upper()) .. "', \
         SHA1(CONCAT( \
           UPPER('" .. db:escape(username) .. "'), ':', \
           UPPER('" .. db:escape(password) .. "') \
         )), \
-        'LOWER(" .. db:escape(email) .. ")', \
+        LOWER('" .. db:escape(email) .. "'), \
         '" .. salt:gen(16) .. "', \
         NOW(), \
         '" .. db:escape(ip) .. "' \
