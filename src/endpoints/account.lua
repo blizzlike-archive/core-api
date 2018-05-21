@@ -1,5 +1,6 @@
 local cjson = require('cjson')
 local core_acc = require('core.account')
+local config = require('core.config')
 local lh = require('luna.helper')
 
 local blacklist = {
@@ -22,7 +23,7 @@ function account.auth(self)
   if data.username and data.password then
     local auth, err = core_acc:auth(data.username, data.password, ngx.var.remote_addr)
     if auth then
-      lh:set_cookie(auth.token)
+      lh:set_cookie(auth.token, config.session.expiry)
       return ngx.HTTP_OK, { id = id }
     end
     return ngx.HTTP_FORBIDDEN, { reason = err }

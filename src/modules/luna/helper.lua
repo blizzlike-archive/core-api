@@ -1,8 +1,6 @@
 local helper = {}
 
-local timeout = 86400
-
-function helper.set_cookie(self, token)
+function helper.set_cookie(self, token, timeout)
   local expiry = ngx.time() + timeout
   local cookie = 'token=' .. token .. '; Path=/; Expires=' .. ngx.cookie_time(expiry)
 
