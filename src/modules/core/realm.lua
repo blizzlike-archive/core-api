@@ -24,7 +24,13 @@ function realm.list(self)
     local row = cursor:fetch({}, 'a')
     local list = {}
     while row do
-      table.insert(list, row)
+      table.insert(list, {
+        icon = tonumber(row.icon),
+        timezone = tonumber(row.timezone),
+        population = tonumber(row.population),
+        name = row.name,
+        id = tonumber(row.id)
+      })
       row = cursor:fetch(row, 'a')
     end
     cursor:close()
