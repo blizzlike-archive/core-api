@@ -24,12 +24,20 @@ function realm.list(self)
     local row = cursor:fetch({}, 'a')
     local list = {}
     while row do
+      local state = 0
+      local sock = ngx.socket.tcp()
+      local ok, err = sock:connect(row.address, row.port)
+      if ok then
+        sock:close()
+        state = 1
+      end
       table.insert(list, {
         icon = tonumber(row.icon),
         timezone = tonumber(row.timezone),
         population = tonumber(row.population),
         name = row.name,
-        id = tonumber(row.id)
+        id = tonumber(row.id),
+        state = state
       })
       row = cursor:fetch(row, 'a')
     end

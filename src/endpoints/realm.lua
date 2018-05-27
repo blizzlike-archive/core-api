@@ -17,7 +17,8 @@ function realm.list(self)
       name = v.name,
       icon = v.icon,
       timezone = v.timezone,
-      population = v.population
+      population = v.population,
+      state = v.state
     })
   end
   return ngx.HTTP_OK, data
