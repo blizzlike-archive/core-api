@@ -10,6 +10,7 @@ before_script:
   - env | grep GITHUB >> /tmp/travis.env || true
   - env | grep DISTRONAME >> /tmp/travis.env
 
+  - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
   - |
     docker pull blizzlike/buildenv:${DISTRONAME}
     docker run \
@@ -20,10 +21,11 @@ before_script:
 
 stages:
   - generate
+  - docker
 
 jobs:
   include:
-    # build binary packages
+    # generate documentation
     - stage: generate
       env:
         - DISTRONAME=stretch
@@ -31,3 +33,10 @@ jobs:
         - |
           docker exec -t buildenv-${DISTRONAME} \
             lua5.1 ./travis/core-api.lua
+    # build docker image
+    - stage: docker
+      env:
+        - DISTRONAME=stretch
+      script:
+        - make docker
+        - docker push blizzlike/core-api:master
