@@ -10,7 +10,6 @@ before_script:
   - env | grep GITHUB >> /tmp/travis.env || true
   - env | grep DISTRONAME >> /tmp/travis.env
 
-  - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
   - |
     docker pull blizzlike/buildenv:${DISTRONAME}
     docker run \
@@ -39,4 +38,5 @@ jobs:
         - DISTRONAME=stretch
       script:
         - make docker
+        - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
         - docker push blizzlike/core-api:master
