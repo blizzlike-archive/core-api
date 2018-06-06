@@ -1,21 +1,18 @@
-# api for wow core
+# Moved to GitLab
 
-this is an api for our wow core based on the [nginx lua module](https://github.com/openresty/lua-nginx-module).
-the api documentation is available [here](https://docs.blizzlike.org/core-api).
+Due to the recent circumstances where GitHub has been acquired by Microsoft, 
+I have decided to leave this place. There can't be any better time to move 
+to an open-source project (at least one where most parts are) rather than 
+staying and by that supporting Microsoft to build up yet another monopoly 
+based on a closed-source software.
 
-## instructions
+**This repository is now hosted on [GitLab](https://gitlab.com/blizzlike-org)**
 
-### docker
+We already live in a world almost exclusively controlled by closed software.
+I hope as many people as possible will follow, in order to build up a 
+new open-source standard of git hosting. I believe that all developers 
+(especially open-source developers) should understand this point of view.
 
-    docker pull blizzlike/core-api:stable
-    docker run --name core-api \
-      -v /path/to/etc/core.lua:/etc/luna/core.lua \
-      -p 9095:80 -d blizzlike/core-api:stable
+I highly appreciate anyone who takes the opportunity and does the same.
 
-### migrate database
-
-    lua5.1 ./migrate <db> <user> <pass> <host> [<port>]
-
-## generate docs
-
-    make documentation
+See you on GitLab
